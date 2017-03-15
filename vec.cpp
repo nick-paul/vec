@@ -182,7 +182,7 @@ public:
     vec(std::initializer_list<T> lst);  // initializer_list constructor
     vec(const vec& other);              // Copy constructor
     vec(vec<T>&& v);                    // Move constructor
-    ~vec() {delete[] arr_;};            // Destructor
+    ~vec() {if (allocsize_ > 0) delete[] arr_;};            // Destructor
     vec& operator=(const vec& v);
 
     // Utils / Access
@@ -786,13 +786,12 @@ VECTORIZE_FN(abs);
 template <typename T>
 vec<T> vec<T>::range(T n)
 {
-    vec<T> v(n);
-    v.size_ = n;
-
-    for (int i = 0; i < n; i++)
-        v.arr_[i] = i;
-
-    return v;
+    if (n > 0)
+        return vec<T>::range(0, n-1, 1);
+    else if (n < 0)
+        return vec<T>::range(0, n+1, -1);
+    else
+        return vec<T>(0);
 }
 
 template <typename T>
@@ -815,7 +814,10 @@ vec<T> vec<T>::range(T a, T b, T inc)
     // Invalid arguments
     // a will never become b with the given inc
     if ( (a < b && inc <= 0) || (a > b && inc >= 0))
-        throw std::invalid_argument("invalid range");
+    {
+        throw std::invalid_argument("invalid range: " + std::to_string(a)
+            + ", " + std::to_string(b) + ", " + std::to_string(inc));
+    }
 
     T cur = a; // current
     vec<T> v(abs(a-b) / abs(inc));
@@ -828,42 +830,24 @@ vec<T> vec<T>::range(T a, T b, T inc)
             cur += inc;
         }
     }
-    else
+    else if (a > b)
     {
         while (cur >= b)
         {
             v.append(cur);
             cur += inc;
+
         }
     }
+    else
+    {
+        v.append(cur);
+    }
+
 
     return v;
 }
 
-
-
-
-//
-// std::string vec::as_str() const {
-//     std::string s;
-//     s.reserve(size_);
-//     for (int i = 0; i < size_; i++)
-//         s += (char)arr_[i];
-//     return s;
-// }
-//
-// int vec::dot_prod(const vec& v1, const vec& v2) const {
-//     if (v1.size() != v2.size())
-//         throw std::out_of_range("+: length mismatch");
-//
-//     int total = 0;
-//     for (int i = 0; i < v1.size(); i++) {
-//         total += v1.get(i)*v2.get(i);
-//     }
-//
-//     return total;
-// }
-//
 
 template <typename T>
 vec<T> pow(const vec<T>& v, T n)
@@ -927,7 +911,8 @@ T* end(vec<T>& v)
 
 
 
-void run_tests() {
+void run_tests()
+{
     vec<int> vi{1,2,3};
     vec<float> vf{1.2, 3.3, 4.5};
 
@@ -1047,92 +1032,72 @@ void run_tests() {
     int pe6_n = pow(sum(pe6),2) - sum(pow(pe6,2));
     assert(pe6_n == 25164150);
 
+    // Ranges
     assert(vec<int>::range(1,-9,-10).str() == "<1, -9>");
-
-
     assert(pow(vec<int>::range(5), 2).str() == "<0, 1, 4, 9, 16>");
     assert(pow(2, vec<int>::range(5)).str() == "<1, 2, 4, 8, 16>");
     assert(pow(vec<int>::range(4), vec<int>::range(4)).str() == "<1, 1, 4, 27>");
+    assert((vec<int>::range(0)).str() == "<>");
+    assert(vec<int>::range(-1).str() == "<0>");
+    assert(vec<int>::range(1).str() == "<0>");
 
 
     assert(sum(pow(vec<int>::range(1,10,1),2)) == 385);
     assert(pow(sum(vec<int>::range(1,10,1)),2) == 3025);
 
-
-}
-
-#define V vec<int>
-
-int main()
-{
-
-    run_tests();
-
-    vec<int> vi{1,2,3};
-    //print(vi);
-
-    vec<double> vd{1,2,3};
-    //print(vd);
-
-    vec<char> vc{'c','d'};
-    //print(vc);
-
-    vec<double> vds = sin(vd);
-
-    print(vds);
-
-    print(sin(vec<float>{3.1415926595, 2}));
-
-    print(abs(vec<int>{1, -1, 7, -7}));
-
-    print(vec<int>{1, 2, 3} - vec<int>{3, 2, 1});
-
-    print(V{1,2,3});
-
-    print(vec<bool>{true, false} || false);
-
-    print(vec<int>{1, 2, 3} % 2);
+    assert( (vec<bool>{true, false} || false).str() == "<1, 0>");
 
     vec<vec<int>> mat{ {1,2,3}, {4, 5, 6} };
-    print(mat * mat);
+    assert((mat * mat).str() == "<<1, 4, 9>, <16, 25, 36>>");
 
-    print(mat + (vec<int>{1, 2}));
+    assert( (mat + (vec<int>{1, 2})).str() == "<<2, 3, 4>, <6, 7, 8>>");
 
-    print(vec<float>{1.2, 3.4} + vec<int>{1, 2});
-    print(vec<int>{1, 2} + vec<float>{1.2, 3.4});
-    print(vec<int>{1, 2} + 1.5);
-    print(1.5 + vec<int>{1, 2});
+    // Conversions
+    // vec <op> vec: use type from left side
+    assert((vec<float>{1.2, 3.4} + vec<int>{1, 2}).str() == "<2.2, 5.4>");
+    assert((vec<int>{1, 2} + vec<float>{1.2, 3.4}).str() == "<2, 5>");
 
+    assert((vec<int>{1, 2} + 1.5).str() == "<2, 3>");
+    assert((1.5 + vec<int>{1, 2}).str() == "<2, 3>");
 
-    for (auto& row : mat) {
-        print(row);
-    }
-
-
-    print(vec<int>{1,2,3} > 2);
+    assert((vec<int>{1,2,3} > 2).str() == "<0, 0, 1>");
 
     vi = vec<int>{1, 2, 3, 4};
     vec<bool> vb{0,1,1,0};
-    print(vi.take(vb && 1));
+    assert((vi.take(vb && 1)).str() == "<2, 3>");
 
-    print(vi.take(!(vi < 3 || vi == 4)));
+    vi = vec<int>();
+    assert((vi.take(!(vi < 3 || vi == 4))).str() == "<>");
 
-    print(vi.take((vi < 3) + 1));
+    vi = vec<int>{1,2,3,4,5};
+    assert((vi.take(!(vi < 3 || vi == 4))).str() == "<3, 5>");
 
-    vec<int> vr = vec<int>::range(10);
-    print(vr);
-    print(1+vr);
+    // non-zero is true
+    assert((vi.take((vi < 3) + 1)).str() == "<1, 2, 3, 4, 5>");
 
+    vec<int> vr = vec<int>::range(-2,2);
+    assert(vr.str() == "<-2, -1, 0, 1, 2>");
+    assert((1+vr).str() == "<-1, 0, 1, 2, 3>");
 
+    vr = vec<int>::range(-100,100, 50);
+    assert(vr.str() == "<-100, -50, 0, 50, 100>");
+
+    vr = vec<int>::range(10);
     int sumSqEvens = sum(vr.apply_to(vr % 2 == 0, [](int i){return i * i;}));
-    print(sumSqEvens);
+    assert(sumSqEvens == 145);
+
+    vec<double> v_empty;
+    assert(v_empty.str() == "<>");
+    assert(sum(v_empty) == 0);
+    assert(sum(sin(v_empty)) == 0);
+    assert((v_empty + v_empty * 10 - v_empty).str() == "<>");
 
 
+}
 
-
-
-
-
+int main()
+{
+    run_tests();
 
     return 0;
 }
