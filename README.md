@@ -1,1 +1,1 @@
-A single file C++ library for working with lists of numerics
+A header-only C++ library for working with lists of numerics
