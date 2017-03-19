@@ -5,11 +5,7 @@
 #include <math.h>
 #include <sstream>
 
-// For testing
-#include <assert.h>
-#include <complex.h>
-template <typename T>
-void print(T n) {std::cout << n << std::endl;};
+
 
 
 
@@ -208,8 +204,11 @@ public:
     //double mean() const;
     //int median() const;
     //int mode() const;
-    //int max() const;
-    //int min() const;
+    template <typename Y>
+    friend Y max(const vec<Y>& v);
+
+    template <typename Y>
+    friend Y min(const vec<Y>& v);
 
     // Output
     template <typename Y>
@@ -510,6 +509,37 @@ T prod(const vec<T>& v)
         total *= v.arr_[i];
     }
     return total;
+}
+
+template <typename T>
+T max(const vec<T>& v)
+{
+    T cur_max;
+    if (v.size_ > 0)
+        cur_max = v.arr_[0];
+    else
+        throw std::out_of_range("max: empty vector");
+
+    for (int i = 1; i < v.size_; i++)
+        cur_max = cur_max < v.arr_[i] ? v.arr_[i] : cur_max;
+
+    return cur_max;
+}
+
+
+template <typename T>
+T min(const vec<T>& v)
+{
+    T cur_min;
+    if (v.size_ > 0)
+        cur_min = v.arr_[0];
+    else
+        throw std::out_of_range("min: empty vector");
+
+    for (int i = 1; i < v.size_; i++)
+        cur_min = cur_min > v.arr_[i] ? v.arr_[i] : cur_min;
+
+    return cur_min;
 }
 
 

@@ -1,5 +1,11 @@
 #include "vec.h"
 
+#include <assert.h>
+#include <complex.h>
+
+template <typename T>
+void print(T n) {std::cout << n << std::endl;};
+
 void run_tests();
 
 int main()
@@ -205,6 +211,14 @@ void run_tests()
     assert(sum(v_empty) == 0);
     assert(sum(sin(v_empty)) == 0);
     assert((v_empty + v_empty * 10 - v_empty).str() == "<>");
+
+    vi = vec<int>{1, 2, 3, 4};
+    vf = vec<float>{0.2f, 3.5f, -53.0f};
+    assert(max(vi) == 4);
+    assert(min(vi) == 1);
+    assert(max(vf) == 3.5f);
+    assert(min(vf) == -53.0f);
+
 
 
 }
