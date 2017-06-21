@@ -16,15 +16,15 @@
 // Vectorized functions
 // fn(op) = {fn(op0), fn(op1), ...}
 // sin, abs, sqrt, etc...
-#define VECTORIZE_FN(FN) template <typename T>\
-vec<T> FN(const vec<T>& v)\
-{\
-    vec<T> w(v.size_);\
-    w.size_ = v.size_;\
-    for (int i = 0; i < v.size_; i++){\
-        w.arr_[i] = FN(v.arr_[i]);\
-    }\
-    return w;\
+#define VECTORIZE_FN(FN) template <typename T>  \
+vec<T> FN(const vec<T>& v)                      \
+{                                               \
+    vec<T> w(v.size_);                          \
+    w.size_ = v.size_;                          \
+    for (int i = 0; i < v.size_; i++){          \
+        w.arr_[i] = FN(v.arr_[i]);              \
+    }                                           \
+    return w;                                   \
 }
 
 #define VECTORIZE_FN_PROTO(FN) template <typename Y>\
@@ -40,60 +40,60 @@ friend vec<Y> FN(const vec<Y>& v);
 
 // A binary operator taking an atom on the left
 //   and a `vec` on the right
-#define BOP_ATM_VEC(OP) template <typename T, typename Q>\
-vec<T> operator OP(Q n, const vec<T>& v) {\
-    const int size = v.size();\
-    vec<T> out = vec<T>(size); /* Allocate vector `out` */\
-    out.size_ = size;\
-    for (int i = 0; i < size; i++) {\
-        out[i] = n OP v[i];\
-    }\
-    return out;\
+#define BOP_ATM_VEC(OP) template <typename T, typename Q>   \
+vec<T> operator OP(Q n, const vec<T>& v) {                  \
+    const int size = v.size();                              \
+    vec<T> out = vec<T>(size); /* Allocate vector `out` */  \
+    out.size_ = size;                                       \
+    for (int i = 0; i < size; i++) {                        \
+        out[i] = n OP v[i];                                 \
+    }                                                       \
+    return out;                                             \
 }
 
 // A binary operator taking a `vec` on the left
 //   and an atom on the right
-#define BOP_VEC_ATM(OP) template <typename T, typename Q>\
-vec<T> operator OP(const vec<T>& v, Q n) {\
-    const int size = v.size();\
-    vec<T> out(size); /* Allocate a new vector `out` */\
-    out.size_ = size;\
-    for (int i = 0; i < size; i++) {\
-        out[i] = v[i] OP n;\
-    }\
-    return out;\
+#define BOP_VEC_ATM(OP) template <typename T, typename Q>   \
+vec<T> operator OP(const vec<T>& v, Q n) {                  \
+    const int size = v.size();                              \
+    vec<T> out(size); /* Allocate a new vector `out` */     \
+    out.size_ = size;                                       \
+    for (int i = 0; i < size; i++) {                        \
+        out[i] = v[i] OP n;                                 \
+    }                                                       \
+    return out;                                             \
 }
 
 // A binary operator taking a `vec` on both the right
 //   hand side and the left hand side. Vecs have different types
-#define BOP_VECT_VEC(OP) template <typename T, typename Q>\
-vec<T> operator OP(const vec<T>& v1, const vec<Q>& v2) {\
-    if (v1.size() != v2.size()) {\
-        throw std::out_of_range("length error");\
-    }\
-    const int size = v1.size();\
-    vec<T> out(size);\
-    out.size_ = size;\
-    for (int i = 0; i < size; i++) {\
-        out[i] = v1[i] OP v2[i];\
-    }\
-    return out;\
+#define BOP_VECT_VEC(OP) template <typename T, typename Q>  \
+vec<T> operator OP(const vec<T>& v1, const vec<Q>& v2) {    \
+    if (v1.size() != v2.size()) {                           \
+        throw std::out_of_range("length error");            \
+    }                                                       \
+    const int size = v1.size();                             \
+    vec<T> out(size);                                       \
+    out.size_ = size;                                       \
+    for (int i = 0; i < size; i++) {                        \
+        out[i] = v1[i] OP v2[i];                            \
+    }                                                       \
+    return out;                                             \
 }
 
 
 
 // Implement all three cases for binary operators
-#define IMPL_BOP(OP) BOP_VECT_VEC( OP ) \
-BOP_ATM_VEC( OP ) \
+#define IMPL_BOP( OP ) BOP_VECT_VEC( OP )   \
+BOP_ATM_VEC( OP )                           \
 BOP_VEC_ATM( OP )
 
 
 // Define prototype functions for binary operators
-#define PROTO_BOP(OP) template <typename Y, typename Q>\
-friend vec<Y> operator OP(const vec<Y>& v, Q n);\
-template <typename Y, typename Q>\
-friend vec<Y> operator OP(Q n, const vec<Y>& v);\
-template <typename Y, typename Q>\
+#define PROTO_BOP(OP) template <typename Y, typename Q>         \
+friend vec<Y> operator OP(const vec<Y>& v, Q n);                \
+template <typename Y, typename Q>                               \
+friend vec<Y> operator OP(Q n, const vec<Y>& v);                \
+template <typename Y, typename Q>                               \
 friend vec<Y> operator OP(const vec<Y>& v1, const vec<Q>& v2);
 
 
@@ -104,60 +104,60 @@ friend vec<Y> operator OP(const vec<Y>& v1, const vec<Q>& v2);
 
 // A binary operator taking an atom on the left
 //   and a `vec` on the right
-#define COMP_ATM_VEC(OP) template <typename T, typename Q>\
-vec<bool> operator OP(Q n, const vec<T>& v) {\
-    const int size = v.size();\
-    vec<bool> out(size); /* Allocate vector `out` */\
-    out.size_ = size;\
-    for (int i = 0; i < size; i++) {\
-        out[i] = n OP v[i];\
-    }\
-    return out;\
+#define COMP_ATM_VEC(OP) template <typename T, typename Q>  \
+vec<bool> operator OP(Q n, const vec<T>& v) {               \
+    const int size = v.size();                              \
+    vec<bool> out(size); /* Allocate vector `out` */        \
+    out.size_ = size;                                       \
+    for (int i = 0; i < size; i++) {                        \
+        out[i] = n OP v[i];                                 \
+    }                                                       \
+    return out;                                             \
 }
 
 // A binary operator taking a `vec` on the left
 //   and an atom on the right
-#define COMP_VEC_ATM(OP) template <typename T, typename Q>\
-vec<bool> operator OP(const vec<T>& v, Q n) {\
-    const int size = v.size();\
-    vec<bool> out(size); /* Allocate a new vector `out` */\
-    out.size_ = size;\
-    for (int i = 0; i < size; i++) {\
-        out[i] = v[i] OP n;\
-    }\
-    return out;\
+#define COMP_VEC_ATM(OP) template <typename T, typename Q>  \
+vec<bool> operator OP(const vec<T>& v, Q n) {               \
+    const int size = v.size();                              \
+    vec<bool> out(size); /* Allocate a new vector `out` */  \
+    out.size_ = size;                                       \
+    for (int i = 0; i < size; i++) {                        \
+        out[i] = v[i] OP n;                                 \
+    }                                                       \
+    return out;                                             \
 }
 
 // A binary operator taking a `vec` on both the right
 //   hand side and the left hand side. Vecs have different types
-#define COMP_VECT_VEC(OP) template <typename T, typename Q>\
-vec<bool> operator OP(const vec<T>& v1, const vec<Q>& v2) {\
-    if (v1.size() != v2.size()) {\
-        throw std::out_of_range("length error");\
-    }\
-    const int size = v1.size();\
-    vec<bool> out(size);\
-    out.size_ = size;\
-    for (int i = 0; i < size; i++) {\
-        out[i] = v1[i] OP v2[i];\
-    }\
-    return out;\
+#define COMP_VECT_VEC(OP) template <typename T, typename Q> \
+vec<bool> operator OP(const vec<T>& v1, const vec<Q>& v2) { \
+    if (v1.size() != v2.size()) {                           \
+        throw std::out_of_range("length error");            \
+    }                                                       \
+    const int size = v1.size();                             \
+    vec<bool> out(size);                                    \
+    out.size_ = size;                                       \
+    for (int i = 0; i < size; i++) {                        \
+        out[i] = v1[i] OP v2[i];                            \
+    }                                                       \
+    return out;                                             \
 }
 
 
 
 // Implement all three cases for binary operators
-#define IMPL_COMP(OP) COMP_VECT_VEC( OP ) \
-COMP_ATM_VEC( OP ) \
+#define IMPL_COMP(OP) COMP_VECT_VEC( OP )   \
+COMP_ATM_VEC( OP )                          \
 COMP_VEC_ATM( OP )
 
 
 // Define prototype functions for binary operators
-#define PROTO_COMP(OP) template <typename Y, typename Q>\
-friend vec<bool> operator OP(const vec<Y>& v, Q n);\
-template <typename Y, typename Q>\
-friend vec<bool> operator OP(Q n, const vec<Y>& v);\
-template <typename Y, typename Q>\
+#define PROTO_COMP(OP) template <typename Y, typename Q>            \
+friend vec<bool> operator OP(const vec<Y>& v, Q n);                 \
+template <typename Y, typename Q>                                   \
+friend vec<bool> operator OP(Q n, const vec<Y>& v);                 \
+template <typename Y, typename Q>                                   \
 friend vec<bool> operator OP(const vec<Y>& v1, const vec<Q>& v2);
 
 
